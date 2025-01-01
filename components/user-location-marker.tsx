@@ -1,18 +1,23 @@
-import { UserLocation } from '@/app/users-query-options';
+import { UserLocation } from '@prisma/client';
 import { AdvancedMarker } from '@vis.gl/react-google-maps';
 
 export function UserLocationMarker({ location }: { location: UserLocation }) {
   return (
-    <AdvancedMarker position={location}>
+    <AdvancedMarker
+      position={{
+        lat: location.latitude,
+        lng: location.longitude,
+      }}
+    >
       <div className="relative">
         <figure className="flex flex-col items-center absolute -translate-x-1/2 -translate-y-full">
           <figcaption
             className="px-2 p-1 text-white rounded-sm text-sm"
-            style={{ backgroundColor: location.identifierColor }}
+            style={{ backgroundColor: location.colorIdentifier }}
           >
             <p className="flex items-center space-x-1">
               <span className="rounded-full bg-green-300 w-2 h-2 border-neutral-900 border" />
-              <span>{location.username}</span>
+              <span>{location.name}</span>
             </p>
           </figcaption>
           <span
@@ -23,7 +28,7 @@ export function UserLocationMarker({ location }: { location: UserLocation }) {
               borderLeftColor: 'transparent',
               borderRightColor: 'transparent',
               borderBottomColor: 'transparent',
-              borderTopColor: location.identifierColor,
+              borderTopColor: location.colorIdentifier,
               borderTopWidth: 16,
               borderRightWidth: 4,
               borderBottomWidth: 0,

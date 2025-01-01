@@ -11,12 +11,13 @@ import { userQueryOptions } from '@/app/user-query-options';
 import { UserLocationMarker } from './user-location-marker';
 import { UsernameEditorDialog } from './username-editor-dialog';
 import { CurrentLocationMarker } from './current-location-marker';
+import { upsertUserLocation } from '@/app/actions';
 
 export function MapExplorer() {
   const { data: userLocations } = useSuspenseQuery(usersQueryOptions);
   const { data: myUsername } = useSuspenseQuery(userQueryOptions);
 
-  const { latitude, longitude, error } = useGeolocation();
+  const { latitude, longitude } = useGeolocation();
   const map = useMap();
 
   useEffect(() => {
@@ -25,9 +26,14 @@ export function MapExplorer() {
     }
   }, [map, latitude, longitude]);
 
-  if (error) {
-    return <div>{error}</div>;
-  }
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (latitude && longitude && myUsername) {
+        void upsertUserLocation({ latitude, longitude });
+      }
+    }, 1000 * 30);
+    return () => clearInterval(id);
+  }, [latitude, longitude, myUsername]);
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -39,7 +45,7 @@ export function MapExplorer() {
           defaultZoom={15}
         >
           {userLocations
-            .filter((user) => user.username !== myUsername)
+            .filter((user) => user.name !== myUsername)
             .map((location) => (
               <UserLocationMarker key={location.id} location={location} />
             ))}

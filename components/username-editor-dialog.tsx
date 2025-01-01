@@ -13,14 +13,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { userQueryOptions } from '@/app/user-query-options';
-import { updateLoggedInUsername } from '@/app/actions';
+import { saveLoggedInUsername } from '@/app/actions';
 import invariant from 'tiny-invariant';
 
 export function UsernameEditorDialog({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { data: username } = useSuspenseQuery(userQueryOptions);
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => !Boolean(username));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
 
@@ -36,7 +36,7 @@ export function UsernameEditorDialog({ children }: { children: ReactNode }) {
 
     setIsSubmitting(true);
     try {
-      await updateLoggedInUsername(newUsername);
+      await saveLoggedInUsername(newUsername);
       queryClient.invalidateQueries({ queryKey: userQueryOptions.queryKey });
       setIsOpen(false);
       setError(undefined);
