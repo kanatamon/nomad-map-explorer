@@ -1,5 +1,5 @@
-import { userQueryOptions } from '@/app/user-query-options';
 import { useGeolocation } from '@/lib/use-geolocation';
+import { userQueryOptions } from '@/lib/user-query-options';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { AdvancedMarker } from '@vis.gl/react-google-maps';
 import { Navigation2, CircleAlert } from 'lucide-react';

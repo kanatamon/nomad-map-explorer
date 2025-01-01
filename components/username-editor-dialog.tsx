@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from 'react';
+import invariant from 'tiny-invariant';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,18 +13,21 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { userQueryOptions } from '@/app/user-query-options';
-import { saveLoggedInUsername } from '@/app/actions';
-import invariant from 'tiny-invariant';
+import { saveLoggedInUsername } from '@/lib/actions';
+import { userQueryOptions } from '@/lib/user-query-options';
 
 export function UsernameEditorDialog({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const { data: username } = useSuspenseQuery(userQueryOptions);
+  const { data: myUsername, isLoading: isLoadingMyUsername } =
+    useQuery(userQueryOptions);
 
-  const [isOpen, setIsOpen] = useState(() => !Boolean(username));
+  const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
+
+  if (!isLoadingMyUsername && !myUsername && !isOpen) {
+    setIsOpen(true);
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,10 +70,11 @@ export function UsernameEditorDialog({ children }: { children: ReactNode }) {
                 Username
               </Label>
               <Input
+                key={myUsername}
                 id="username"
                 className="col-span-3"
                 name="username"
-                defaultValue={username ?? ''}
+                defaultValue={myUsername ?? ''}
               />
             </div>
             {error && (

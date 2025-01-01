@@ -3,19 +3,19 @@
 import { useEffect } from 'react';
 import { Map, useMap } from '@vis.gl/react-google-maps';
 import { LogIn, MapPin, UserRoundPen } from 'lucide-react';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { useGeolocation } from '@/lib/use-geolocation';
-import { usersQueryOptions } from '@/app/users-query-options';
-import { userQueryOptions } from '@/app/user-query-options';
+import { usersQueryOptions } from '@/lib/users-query-options';
+import { upsertUserLocation } from '@/lib/actions';
+import { userQueryOptions } from '@/lib/user-query-options';
 import { UserLocationMarker } from './user-location-marker';
 import { UsernameEditorDialog } from './username-editor-dialog';
 import { CurrentLocationMarker } from './current-location-marker';
-import { upsertUserLocation } from '@/app/actions';
 
 export function MapExplorer() {
-  const { data: userLocations } = useSuspenseQuery(usersQueryOptions);
-  const { data: myUsername } = useSuspenseQuery(userQueryOptions);
+  const { data: userLocations } = useQuery(usersQueryOptions);
+  const { data: myUsername } = useQuery(userQueryOptions);
 
   const { latitude, longitude } = useGeolocation();
   const map = useMap();
@@ -45,7 +45,7 @@ export function MapExplorer() {
           defaultZoom={15}
         >
           {userLocations
-            .filter((user) => user.name !== myUsername)
+            ?.filter((user) => user.name !== myUsername)
             .map((location) => (
               <UserLocationMarker key={location.id} location={location} />
             ))}
