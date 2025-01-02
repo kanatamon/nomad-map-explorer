@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Map, useMap } from '@vis.gl/react-google-maps';
 import { LogIn, MapPin, UserRoundPen } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -27,11 +27,13 @@ export function MapExplorer() {
   }, [map, latitude, longitude]);
 
   useEffect(() => {
+    if (!latitude || !longitude || !myUsername) return;
+    void upsertUserLocation({ latitude, longitude });
     const id = setInterval(() => {
       if (latitude && longitude && myUsername) {
         void upsertUserLocation({ latitude, longitude });
       }
-    }, 1000 * 30);
+    }, 1000 * 60);
     return () => clearInterval(id);
   }, [latitude, longitude, myUsername]);
 
@@ -49,7 +51,9 @@ export function MapExplorer() {
             .map((location) => (
               <UserLocationMarker key={location.id} location={location} />
             ))}
-          <CurrentLocationMarker />
+          <Suspense fallback={null}>
+            <CurrentLocationMarker />
+          </Suspense>
         </Map>
       </div>
       <div className="shrink-0 px-2 pt-2 pb-5 flex space-x-3 justify-between">

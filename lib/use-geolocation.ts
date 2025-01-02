@@ -42,7 +42,11 @@ export function useGeolocation() {
 
     const watchId = navigator.geolocation.watchPosition(
       updateLocation,
-      handleError
+      handleError,
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+      }
     );
 
     // Cleanup the watcher when the component unmounts
