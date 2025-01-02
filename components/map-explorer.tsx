@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Map, useMap } from '@vis.gl/react-google-maps';
 import { LogIn, MapPin, UserRoundPen } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -12,6 +12,7 @@ import { userQueryOptions } from '@/lib/user-query-options';
 import { UserLocationMarker } from './user-location-marker';
 import { UsernameEditorDialog } from './username-editor-dialog';
 import { CurrentLocationMarker } from './current-location-marker';
+import invariant from 'tiny-invariant';
 
 export function MapExplorer() {
   const { data: userLocations } = useQuery(usersQueryOptions);
@@ -19,6 +20,17 @@ export function MapExplorer() {
 
   const { latitude, longitude } = useGeolocation();
   const map = useMap();
+
+  const [selectedUsername, setSelectedUsername] = useState<string>();
+
+  const navigateToUser = () => {
+    const destination = userLocations?.find(
+      (user) => user.name === selectedUsername
+    );
+    invariant(destination, 'Expected destination to be defined');
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}`;
+    window.open(googleMapsUrl, '_blank');
+  };
 
   useEffect(() => {
     if (latitude && longitude) {
@@ -49,7 +61,21 @@ export function MapExplorer() {
           {userLocations
             ?.filter((user) => user.name !== myUsername)
             .map((location) => (
-              <UserLocationMarker key={location.id} location={location} />
+              <UserLocationMarker
+                key={location.id}
+                location={location}
+                onClick={() => setSelectedUsername(location.name)}
+                isHighlighted={location.name === selectedUsername}
+                onNavigate={() => {
+                  if (
+                    window.confirm(
+                      `คุณต้องเปิด Google Maps เพื่อนำทางให้หา ${location.name} ใช่หรือไม่?`
+                    )
+                  ) {
+                    navigateToUser();
+                  }
+                }}
+              />
             ))}
           <Suspense fallback={null}>
             <CurrentLocationMarker />
