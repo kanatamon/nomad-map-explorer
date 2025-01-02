@@ -3,19 +3,23 @@
 import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import invariant from 'tiny-invariant';
-// import invariant from 'tiny-invariant';
 
 const COLORS = [
-  '#d53e4f',
-  '#fc8d59',
-  '#fee08b',
-  '#ffffbf',
-  '#e6f598',
-  '#99d594',
-  '#3288bd',
+  '#f72585',
+  '#b5179e',
+  '#7209b7',
+  '#560bad',
+  '#480ca8',
+  '#3a0ca3',
+  '#3f37c9',
+  '#4361ee',
+  '#4895ef',
+  '#5f0f40',
+  '#9a031e',
+  '#0f4c5c',
 ];
 
-const EXPIRED_USER_LOCATION_THRESHOLD = 1000 * 60 * 3; // 3 minutes
+const EXPIRED_USER_LOCATION_THRESHOLD = 1000 * 60 * 5; // 5 minutes
 
 export async function getUserLocations() {
   const userLocations = await prisma.userLocation.findMany();
@@ -78,10 +82,10 @@ export async function upsertUserLocation(location: {
   const latestUserLocation = await prisma.userLocation.findFirst({
     orderBy: { createdAt: 'desc' },
   });
-  const nextColorIndex = COLORS.indexOf(
-    latestUserLocation?.colorIdentifier ?? COLORS[0]
-  );
-  const nextColor = COLORS[(nextColorIndex + 1) % COLORS.length];
+  const latestColorIndex = latestUserLocation?.colorIdentifier
+    ? COLORS.indexOf(latestUserLocation?.colorIdentifier)
+    : COLORS.length - 1;
+  const nextColor = COLORS[(latestColorIndex + 1) % COLORS.length];
   return await prisma.userLocation.create({
     data: {
       name: username,
