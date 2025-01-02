@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { Map, useMap } from '@vis.gl/react-google-maps';
 import { LogIn, MapPin, UserRoundPen } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -14,12 +14,30 @@ import { UsernameEditorDialog } from './username-editor-dialog';
 import { CurrentLocationMarker } from './current-location-marker';
 import invariant from 'tiny-invariant';
 
+function usePrevious<T>(value: T) {
+  const ref = useRef<T>(value);
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
 export function MapExplorer() {
   const { data: userLocations } = useQuery(usersQueryOptions);
   const { data: myUsername } = useQuery(userQueryOptions);
 
-  const { latitude, longitude } = useGeolocation();
   const map = useMap();
+  const { latitude, longitude, state: currState } = useGeolocation();
+  const prevState = usePrevious(currState);
+
+  if (
+    prevState === 'pending' &&
+    currState === 'resolved' &&
+    latitude &&
+    longitude
+  ) {
+    map?.panTo({ lat: latitude, lng: longitude });
+  }
 
   const [selectedUsername, setSelectedUsername] = useState<string>();
 
@@ -31,12 +49,6 @@ export function MapExplorer() {
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}`;
     window.open(googleMapsUrl, '_blank');
   };
-
-  useEffect(() => {
-    if (latitude && longitude) {
-      map?.panTo({ lat: latitude, lng: longitude });
-    }
-  }, [map, latitude, longitude]);
 
   useEffect(() => {
     if (!latitude || !longitude || !myUsername) return;

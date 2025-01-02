@@ -53,5 +53,13 @@ export function useGeolocation() {
     return () => navigator.geolocation.clearWatch(watchId);
   }, [updateLocation, handleError]);
 
-  return location;
+  return {
+    latitude: location.latitude,
+    longitude: location.longitude,
+    error: location.error,
+    state:
+      location.latitude && location.longitude
+        ? ('resolved' as const)
+        : ('pending' as const),
+  };
 }
