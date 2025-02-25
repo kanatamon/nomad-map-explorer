@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import invariant from 'tiny-invariant';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -18,26 +18,28 @@ import { userQueryOptions } from '@/lib/user-query-options';
 
 export function UsernameEditorDialog({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
-  const { data: myUsername, isLoading: isLoadingMyUsername } =
-    useQuery(userQueryOptions);
+  const {
+    data: myUsername,
+    isLoading: isLoadingMyUsername,
+    isRefetching: isRefetchingMyUsername,
+  } = useQuery(userQueryOptions);
 
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
 
-  if (!isLoadingMyUsername && !myUsername && !isOpen) {
-    setIsOpen(true);
-  }
+  useEffect(() => {
+    if (!isLoadingMyUsername && !isRefetchingMyUsername && !myUsername && !isOpen) {
+      setIsOpen(true);
+    }
+  }, [isLoadingMyUsername, myUsername, isOpen, isRefetchingMyUsername]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const formData = new FormData(event.target as HTMLFormElement);
     const newUsername = formData.get('username');
-    invariant(
-      typeof newUsername === 'string',
-      'Expected username to be a string'
-    );
+    invariant(typeof newUsername === 'string', 'Expected username to be a string');
 
     setIsSubmitting(true);
     try {
@@ -59,8 +61,7 @@ export function UsernameEditorDialog({ children }: { children: ReactNode }) {
         <DialogHeader>
           <DialogTitle className="text-neutral-500">Edit profile</DialogTitle>
           <DialogDescription>
-            Edit your profile information here. This information will be visible
-            to other users.
+            Edit your profile information here. This information will be visible to other users.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -77,9 +78,7 @@ export function UsernameEditorDialog({ children }: { children: ReactNode }) {
                 defaultValue={myUsername ?? ''}
               />
             </div>
-            {error && (
-              <div className="col-span-4 text-red-500 text-sm">{error}</div>
-            )}
+            {error && <div className="col-span-4 text-red-500 text-sm">{error}</div>}
           </div>
           <DialogFooter>
             <Button type="submit" size="lg" disabled={isSubmitting}>
